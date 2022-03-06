@@ -23,15 +23,19 @@ impl RabinKarp {
     }
     res
   }
+  pub fn horner_constant(&self, m: usize) -> usize {
+    let mut h = 1;
+    for _ in 0..(m - 1) {
+      h = (h * self.d) % self.q;
+    }
+    h
+  }
   // Rabin-Karp search
   pub fn search(&self, pattern: &[u8], text: &[u8]) -> isize {
     let m = pattern.len();
     let n = text.len();
-    let mut h = 1;
     // Compute horner's constant
-    for _ in 0..(m - 1) {
-      h = (h * self.d) % self.q;
-    }
+    let h = self.horner_constant(m);
     // Calculate hash value for pattern and text
     let p = self.hash(pattern, m);
     let mut t = self.hash(text, m);
