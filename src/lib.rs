@@ -41,16 +41,8 @@ impl RabinKarp {
     let mut t = self.hash(text, m);
     // Find the match
     for i in 0..(n - m + 1) {
-      if p == t {
-        let mut found = true;
-        for j in 0..m {
-          if text[i + j] != pattern[j] {
-            found = false;
-          }
-        }
-        if found {
-          return i as isize;
-        }
+      if p == t && text[i..(i + m)] == pattern[0..m] {
+        return i as isize;
       }
       if i < n - m {
         t = self.roll(t, text[i] as usize, text[i + m] as usize, h);
