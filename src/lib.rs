@@ -42,10 +42,14 @@ impl RabinKarp {
     // Find the match
     for i in 0..(n - m + 1) {
       if p == t {
+        let mut found = true;
         for j in 0..m {
-          if text[i + j] == pattern[j] {
-            return i as isize;
+          if text[i + j] != pattern[j] {
+            found = false;
           }
+        }
+        if found {
+          return i as isize;
         }
       }
       if i < n - m {
