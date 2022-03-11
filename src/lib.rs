@@ -1,3 +1,7 @@
+mod bloom;
+
+pub use bloom::*;
+
 pub struct RabinKarp {
   d: usize,
   q: usize,
@@ -29,6 +33,23 @@ impl RabinKarp {
       h = (h * self.d) % self.q;
     }
     h
+  }
+  pub fn bloom(&self, pattern: &[u8], text: &[u8], bloom: &mut Bloom) -> () {
+    let m = pattern.len();
+    let n = text.len();
+    // Compute horner's constant
+    let h = self.horner_constant(m);
+    // Calculate hash value for pattern and text
+    let p = self.hash(pattern, m);
+    let mut t = self.hash(text, m);
+    // Add to bloom
+    bloom.add(t);
+    // Find the match
+    for i in 0..(n - m + 1) {
+      if i < n - m {
+        t = self.roll(t, text[i] as usize, text[i + m] as usize, h);
+      }
+    }
   }
   // Rabin-Karp search
   pub fn search(&self, pattern: &[u8], text: &[u8]) -> isize {

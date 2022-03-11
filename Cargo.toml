@@ -7,6 +7,8 @@ edition = "2021"
 
 [dependencies]
 criterion = "0.3.5"
+rand="0.8.5"
+bitvec = "1"
 
 [[bench]]
 name = "rk"
