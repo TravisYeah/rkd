@@ -1,7 +1,3 @@
-mod bloom;
-
-pub use bloom::*;
-
 pub struct RabinKarp {
   d: usize,
   q: usize,
@@ -11,64 +7,59 @@ impl RabinKarp {
   pub fn new(q: usize) -> RabinKarp {
     RabinKarp { d: 1 << 8, q }
   }
-  pub fn hash(&self, items: &[u8], m: usize) -> usize {
+  fn hash(&self, items: &Vec<u8>, m: usize) -> usize {
     let mut res = 0;
     for i in 0..m {
       res = (self.d * res + items[i] as usize) % self.q;
     }
     return res;
   }
-  pub fn roll(&self, hash: usize, prev: usize, next: usize, h: usize) -> usize {
+  fn roll(&self, hash: usize, prev: usize, next: usize, h: usize) -> usize {
     let mut res = hash;
-    res = (self.d * (res - prev * h) + next) % self.q;
-    // t can potentially be negative so we add q if needed
-    if res < 0 {
-      res = res + self.q;
-    }
+    res = (res + self.q - h * prev % self.q) % self.q;
+    res = (res * self.d + next) % self.q;
     res
   }
-  pub fn horner_constant(&self, m: usize) -> usize {
-    let mut h = 1;
-    for _ in 0..(m - 1) {
-      h = (h * self.d) % self.q;
-    }
-    h
+  fn horner_constant(&self, m: usize) -> usize {
+    self.d.pow(m as u32 - 1) % self.q
   }
-  pub fn bloom(&self, pattern: &[u8], text: &[u8], bloom: &mut Bloom) -> () {
-    let m = pattern.len();
-    let n = text.len();
-    // Compute horner's constant
-    let h = self.horner_constant(m);
-    // Calculate hash value for pattern and text
-    let p = self.hash(pattern, m);
-    let mut t = self.hash(text, m);
-    // Add to bloom
-    bloom.add(t);
-    // Find the match
-    for i in 0..(n - m + 1) {
-      if i < n - m {
-        t = self.roll(t, text[i] as usize, text[i + m] as usize, h);
+  fn precompute_hashes(
+    &self,
+    bytes: &Vec<u8>,
+    window: usize,
+    h: usize,
+    hashes: &mut Vec<usize>,
+  ) -> () {
+    let mut hash = self.hash(bytes, window);
+    hashes[0] = hash;
+    if bytes.len() - window > 0 {
+      for i in 0..(bytes.len() - window) {
+        hash = self.roll(hash, bytes[i] as usize, bytes[i + window] as usize, h);
+        hashes[i + 1] = hash;
       }
     }
   }
-  // Rabin-Karp search
-  pub fn search(&self, pattern: &[u8], text: &[u8]) -> isize {
-    let m = pattern.len();
-    let n = text.len();
-    // Compute horner's constant
-    let h = self.horner_constant(m);
-    // Calculate hash value for pattern and text
-    let p = self.hash(pattern, m);
-    let mut t = self.hash(text, m);
-    // Find the match
-    for i in 0..(n - m + 1) {
-      if p == t && text[i..(i + m)] == pattern[0..m] {
-        return i as isize;
-      }
-      if i < n - m {
-        t = self.roll(t, text[i] as usize, text[i + m] as usize, h);
+  pub fn search(
+    &self,
+    source: &Vec<u8>,
+    target: &Vec<u8>,
+    window: usize,
+    indices: &mut Vec<isize>,
+  ) -> () {
+    let h = self.horner_constant(window);
+    let mut source_hashes = Vec::new();
+    let mut target_hashes = Vec::new();
+    source_hashes.resize(source.len() - window + 1, 0);
+    target_hashes.resize(target.len() - window + 1, 0);
+    self.precompute_hashes(source, window, h, &mut source_hashes);
+    self.precompute_hashes(target, window, h, &mut target_hashes);
+    for (i, source_hash) in source_hashes.iter().enumerate() {
+      for (j, target_hash) in target_hashes.iter().enumerate() {
+        if source_hash == target_hash && source[i..(i + window)] == target[j..(j + window)] {
+          indices[i] = j as isize;
+          continue;
+        }
       }
     }
-    return -1;
   }
 }
