@@ -62,4 +62,27 @@ mod tests {
     assert_eq!(indices3, [1]);
     assert_eq!(indices4, [-1, 2]);
   }
+
+  #[test]
+  fn compress() {
+    let data = Vec::from([1, 2, 1, 3]);
+    let q = 10_usize.pow(9) + 9;
+    let rk = rkpb::RabinKarp::new(q);
+    let mut indices1 = vec![-1; 1];
+    let mut indices2 = vec![-1; 1];
+    let mut indices3 = vec![-1; 1];
+    let mut indices4 = vec![-1; 2];
+    let v1 = Vec::from([1, 1]);
+    let v2 = Vec::from([1, 2]);
+    let v3 = Vec::from([2, 1]);
+    let v4 = Vec::from([1, 1, 3]);
+    rk.search(&v1, &data, 2, &mut indices1);
+    rk.search(&v2, &data, 2, &mut indices2);
+    rk.search(&v3, &data, 2, &mut indices3);
+    rk.search(&v4, &data, 2, &mut indices4);
+    assert_eq!(indices1, [-1]);
+    assert_eq!(indices2, [0]);
+    assert_eq!(indices3, [1]);
+    assert_eq!(indices4, [-1, 2]);
+  }
 }

@@ -1,3 +1,6 @@
+static ADD: u8 = 0;
+static COPY: u8 = 1;
+
 pub struct RabinKarp {
   d: usize,
   q: usize,
@@ -91,6 +94,42 @@ impl RabinKarp {
           break;
         }
         j += 1;
+      }
+      i += 1;
+    }
+  }
+
+  // TODO handle ADDs size > 1 << 32
+  // TODO handle COPY offsets and size > 1 << 32
+  // TODO change to use tree structure in indices such that both the offset and the length are included (change would be in fn search_greedy)
+  pub fn compress(
+    &self,
+    source: &Vec<u8>,
+    indices: &mut Vec<isize>,
+    delta: &mut Vec<u8>,
+    window: usize,
+  ) {
+    let mut search_start: usize = 0;
+    let mut i: usize = 0;
+    while i < indices.len() {
+      let ix = indices[i];
+      if ix > 0 {
+        if i > search_start {
+          delta.append(&mut Vec::from([ADD]));
+          let add_size: u32 = (i - search_start).try_into().unwrap();
+          delta.append(&mut Vec::from(add_size.to_be_bytes()));
+          let mut add_data = Vec::new();
+          add_data.clone_from_slice(&source[search_start..i]);
+          delta.append(&mut add_data);
+        }
+        delta.append(&mut Vec::from([COPY]));
+        let copy_offset: u32 = (ix).try_into().unwrap();
+        delta.append(&mut Vec::from(copy_offset.to_be_bytes()));
+        let copy_size: u32 = window.try_into().unwrap();
+        delta.append(&mut Vec::from(copy_size.to_be_bytes()));
+        i += 1;
+        search_start = i;
+        continue;
       }
       i += 1;
     }
