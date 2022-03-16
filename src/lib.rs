@@ -62,4 +62,37 @@ impl RabinKarp {
       }
     }
   }
+  pub fn search_greedy(
+    &self,
+    source: &Vec<u8>,
+    target: &Vec<u8>,
+    window: usize,
+    indices: &mut Vec<isize>,
+  ) -> () {
+    let h = self.horner_constant(window);
+    let mut source_hashes = Vec::new();
+    let mut target_hashes = Vec::new();
+    source_hashes.resize(source.len() - window + 1, 0);
+    target_hashes.resize(target.len() - window + 1, 0);
+    self.precompute_hashes(source, window, h, &mut source_hashes);
+    self.precompute_hashes(target, window, h, &mut target_hashes);
+    let mut i = 0;
+
+    let mut last_j = 0;
+    while i < source_hashes.len() {
+      let source_hash = source_hashes[i];
+      let mut j = last_j;
+      while j < source_hashes.len() {
+        if source_hash == target_hashes[j] && source[i..(i + window)] == target[j..(j + window)] {
+          indices[i] = j as isize;
+          j += window;
+          last_j = j;
+          i += window;
+          break;
+        }
+        j += 1;
+      }
+      i += 1;
+    }
+  }
 }
