@@ -1,5 +1,12 @@
-static ADD: u8 = 0;
-static COPY: u8 = 1;
+pub static ADD: u8 = 0;
+pub static COPY: u8 = 1;
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Match {
+  pub source: usize,
+  pub target: usize,
+  pub size: usize,
+}
 
 pub struct RabinKarp {
   d: usize,
@@ -70,7 +77,7 @@ impl RabinKarp {
     source: &Vec<u8>,
     target: &Vec<u8>,
     window: usize,
-    indices: &mut Vec<isize>,
+    indices: &mut Vec<Match>,
   ) -> () {
     let h = self.horner_constant(window);
     let mut source_hashes = Vec::new();
@@ -88,7 +95,11 @@ impl RabinKarp {
         if source_hashes[i] == target_hashes[j]
           && source[i..(i + window)] == target[j..(j + window)]
         {
-          indices[i] = j as isize;
+          indices.push(Match {
+            source: i,
+            target: j,
+            size: window,
+          });
           j += window;
           last_j = j;
           i += window;
