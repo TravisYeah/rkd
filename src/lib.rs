@@ -83,10 +83,11 @@ impl RabinKarp {
 
     let mut last_j = 0;
     while i < source_hashes.len() {
-      let source_hash = source_hashes[i];
       let mut j = last_j;
       while j < target_hashes.len() {
-        if source_hash == target_hashes[j] && source[i..(i + window)] == target[j..(j + window)] {
+        if source_hashes[i] == target_hashes[j]
+          && source[i..(i + window)] == target[j..(j + window)]
+        {
           indices[i] = j as isize;
           j += window;
           last_j = j;
