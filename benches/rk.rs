@@ -9,7 +9,11 @@ fn criterion_benchmark(c: &mut Criterion) {
   let mut target = Vec::new();
   source_file.read_to_end(&mut source).unwrap();
   target_file.read_to_end(&mut target).unwrap();
+  println!("");
+  println!("################ Test Information ################");
   println!("File size: {}kb", source.len() as isize / (1 << 10));
+  println!("##################################################");
+  println!("");
   let window = 1 << 8;
   let q = 10_usize.pow(9) + 9;
 
@@ -27,6 +31,26 @@ fn criterion_benchmark(c: &mut Criterion) {
       let rk = rkpb::RabinKarp::new(q);
       let mut indices: Vec<rkpb::Match> = Vec::new();
       rk.search_greedy(&source, &target, window, &mut indices);
+    })
+  });
+  group.bench_function("compress", |b| {
+    let rk = rkpb::RabinKarp::new(q);
+    let mut indices: Vec<rkpb::Match> = Vec::new();
+    rk.search_greedy(&source, &target, window, &mut indices);
+    b.iter(|| {
+      let mut delta = Vec::new();
+      rk.compress(&target, &indices, &mut delta);
+    })
+  });
+  group.bench_function("decompress", |b| {
+    let rk = rkpb::RabinKarp::new(q);
+    let mut indices: Vec<rkpb::Match> = Vec::new();
+    rk.search_greedy(&source, &target, window, &mut indices);
+    let mut delta = Vec::new();
+    rk.compress(&target, &indices, &mut delta);
+    b.iter(|| {
+      let mut decompressed_data = Vec::new();
+      rk.decompress(&source, &mut decompressed_data, &delta);
     })
   });
 }

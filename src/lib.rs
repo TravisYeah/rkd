@@ -120,7 +120,7 @@ impl RabinKarp {
     delta.append(&mut add_data);
   }
 
-  pub fn compress(&self, target: &Vec<u8>, copies: &mut Vec<Match>, delta: &mut Vec<u8>) {
+  pub fn compress(&self, target: &Vec<u8>, copies: &Vec<Match>, delta: &mut Vec<u8>) {
     if copies.len() == 0 {
       return;
     }
