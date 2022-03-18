@@ -197,4 +197,25 @@ mod tests {
     rk.decompress(&vs, &mut decompressed_data, &delta);
     assert_eq!(decompressed_data, data);
   }
+
+  #[test]
+  fn decompress_big_file() {
+    use std::io::Read;
+    let mut source_file = std::fs::File::open("benches/data/rk-wiki.txt").unwrap();
+    let mut target_file = std::fs::File::open("benches/data/rk-wiki-insert-p.txt").unwrap();
+    let mut source = Vec::new();
+    let mut target = Vec::new();
+    source_file.read_to_end(&mut source).unwrap();
+    target_file.read_to_end(&mut target).unwrap();
+    let q = 10_usize.pow(9) + 9;
+    let rk = rkpb::RabinKarp::new(q);
+    let mut copies: Vec<rkpb::Match> = Vec::new();
+    let window = 1 << 7;
+    rk.search_greedy(&source, &target, window, &mut copies);
+    let mut delta = Vec::new();
+    rk.compress(&target, &copies, &mut delta);
+    let mut decompressed_data = Vec::new();
+    rk.decompress(&source, &mut decompressed_data, &delta);
+    assert_eq!(decompressed_data, target);
+  }
 }
