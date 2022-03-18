@@ -165,4 +165,36 @@ mod tests {
       ]
     );
   }
+
+  #[test]
+  fn decompress() {
+    let data = Vec::from([1, 2, 1, 3, 1]);
+    let q = 10_usize.pow(9) + 9;
+    let rk = rkpb::RabinKarp::new(q);
+    let mut copies: Vec<rkpb::Match> = Vec::new();
+    let vs = Vec::from([1, 1, 3]);
+    let window = 2;
+    rk.search_greedy(&vs, &data, window, &mut copies);
+    let mut delta = Vec::new();
+    rk.compress(&data, &mut copies, &mut delta);
+    let mut decompressed_data = Vec::new();
+    rk.decompress(&vs, &mut decompressed_data, &delta);
+    assert_eq!(decompressed_data, data);
+  }
+
+  #[test]
+  fn decompress_2() {
+    let data = Vec::from([1, 2, 1, 3, 1]);
+    let q = 10_usize.pow(9) + 9;
+    let rk = rkpb::RabinKarp::new(q);
+    let mut copies: Vec<rkpb::Match> = Vec::new();
+    let vs = Vec::from([1, 2, 3, 1]);
+    let window = 2;
+    rk.search_greedy(&vs, &data, window, &mut copies);
+    let mut delta = Vec::new();
+    rk.compress(&data, &mut copies, &mut delta);
+    let mut decompressed_data = Vec::new();
+    rk.decompress(&vs, &mut decompressed_data, &delta);
+    assert_eq!(decompressed_data, data);
+  }
 }

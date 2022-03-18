@@ -142,4 +142,27 @@ impl RabinKarp {
       self.add(target, end_of_last_ix, target.len(), delta);
     }
   }
+  fn read_u32(&self, bytes: &Vec<u8>, offset: usize) -> u32 {
+    u32::from_be_bytes(bytes[offset..(offset + 4)].try_into().unwrap())
+  }
+  pub fn decompress(&self, source: &Vec<u8>, target: &mut Vec<u8>, delta: &Vec<u8>) {
+    let mut i = 0;
+    while i < delta.len() {
+      let action = delta[i];
+      i += 1;
+      if action == ADD {
+        let size = self.read_u32(delta, i) as usize;
+        i += 4;
+        target.extend(delta[i..(i + size)].iter());
+        i += size;
+      }
+      if action == COPY {
+        let offset = self.read_u32(delta, i) as usize;
+        i += 4;
+        let size = self.read_u32(delta, i) as usize;
+        i += 4;
+        target.extend(source[offset..(offset + size)].iter());
+      }
+    }
+  }
 }
