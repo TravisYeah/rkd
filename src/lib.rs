@@ -100,9 +100,8 @@ impl RabinKarp {
             target: j,
             size: window,
           });
-          j += window;
-          last_j = j;
-          i += window;
+          last_j += window;
+          i += window - 1;
           break;
         }
         j += 1;
@@ -111,39 +110,36 @@ impl RabinKarp {
     }
   }
 
-  // TODO handle ADDs size > 1 << 32
-  // TODO handle COPY offsets and size > 1 << 32
-  // TODO change to use tree structure in indices such that both the offset and the length are included (change would be in fn search_greedy)
-  pub fn compress(
-    &self,
-    source: &Vec<u8>,
-    indices: &mut Vec<isize>,
-    delta: &mut Vec<u8>,
-    window: usize,
-  ) {
-    let mut search_start: usize = 0;
-    let mut i: usize = 0;
-    while i < indices.len() {
-      let ix = indices[i];
-      if ix > 0 {
-        if i > search_start {
-          delta.append(&mut Vec::from([ADD]));
-          let add_size: u32 = (i - search_start).try_into().unwrap();
-          delta.append(&mut Vec::from(add_size.to_be_bytes()));
-          let mut add_data = Vec::new();
-          add_data.clone_from_slice(&source[search_start..i]);
-          delta.append(&mut add_data);
-        }
-        delta.append(&mut Vec::from([COPY]));
-        let copy_offset: u32 = (ix).try_into().unwrap();
-        delta.append(&mut Vec::from(copy_offset.to_be_bytes()));
-        let copy_size: u32 = window.try_into().unwrap();
-        delta.append(&mut Vec::from(copy_size.to_be_bytes()));
-        i += 1;
-        search_start = i;
-        continue;
+  fn add(&self, target: &Vec<u8>, start: usize, end: usize, delta: &mut Vec<u8>) {
+    delta.append(&mut Vec::from([ADD]));
+    let add_size: u32 = (end - start).try_into().unwrap();
+    delta.append(&mut Vec::from(add_size.to_be_bytes()));
+    let mut add_data = Vec::new();
+    add_data.resize(end - start, 0);
+    add_data.clone_from_slice(&target[start..end]);
+    delta.append(&mut add_data);
+  }
+
+  pub fn compress(&self, target: &Vec<u8>, copies: &mut Vec<Match>, delta: &mut Vec<u8>) {
+    if copies.len() == 0 {
+      return;
+    }
+    let mut last_copy_ix: usize = 0;
+    for &m in copies.iter() {
+      if m.target > last_copy_ix {
+        self.add(target, last_copy_ix, m.target, delta);
       }
-      i += 1;
+      delta.append(&mut Vec::from([COPY]));
+      let copy_offset: u32 = m.source.try_into().unwrap();
+      delta.append(&mut Vec::from(copy_offset.to_be_bytes()));
+      let copy_size: u32 = m.size.try_into().unwrap();
+      delta.append(&mut Vec::from(copy_size.to_be_bytes()));
+      last_copy_ix = m.target + m.size;
+    }
+    let last_ix = copies[copies.len() - 1];
+    let end_of_last_ix = last_ix.target + last_ix.size;
+    if target.len() > end_of_last_ix {
+      self.add(target, end_of_last_ix, target.len(), delta);
     }
   }
 }

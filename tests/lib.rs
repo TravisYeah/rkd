@@ -84,26 +84,85 @@ mod tests {
     );
   }
 
+  // #[test]
+  // fn compress() {
+  //   let data = Vec::from([1, 2, 1, 3, 1]);
+  //   let q = 10_usize.pow(9) + 9;
+  //   let rk = rkpb::RabinKarp::new(q);
+  //   let mut copies: Vec<rkpb::Match> = Vec::new();
+  //   let vs = Vec::from([1, 1, 3]);
+  //   let window = 2;
+  //   rk.search_greedy(&vs, &data, window, &mut copies);
+  //   let mut delta = Vec::new();
+  //   rk.compress(&data, &mut copies, &mut delta);
+  //   assert_eq!(
+  //     delta,
+  //     [
+  //       rkpb::ADD,
+  //       0,
+  //       0,
+  //       0,
+  //       2,
+  //       1,
+  //       2,
+  //       rkpb::COPY,
+  //       0,
+  //       0,
+  //       0,
+  //       1,
+  //       0,
+  //       0,
+  //       0,
+  //       2,
+  //       rkpb::ADD,
+  //       0,
+  //       0,
+  //       0,
+  //       1,
+  //       1,
+  //     ]
+  //   );
+  // }
+
   #[test]
-  fn compress() {
-    let data = Vec::from([1, 2, 1, 3]);
+  fn compress_test_2() {
+    let data = Vec::from([1, 2, 1, 3, 1]);
     let q = 10_usize.pow(9) + 9;
     let rk = rkpb::RabinKarp::new(q);
-    let mut indices1 = vec![-1; 1];
-    let mut indices2 = vec![-1; 1];
-    let mut indices3 = vec![-1; 1];
-    let mut indices4 = vec![-1; 2];
-    let v1 = Vec::from([1, 1]);
-    let v2 = Vec::from([1, 2]);
-    let v3 = Vec::from([2, 1]);
-    let v4 = Vec::from([1, 1, 3]);
-    rk.search(&v1, &data, 2, &mut indices1);
-    rk.search(&v2, &data, 2, &mut indices2);
-    rk.search(&v3, &data, 2, &mut indices3);
-    rk.search(&v4, &data, 2, &mut indices4);
-    assert_eq!(indices1, [-1]);
-    assert_eq!(indices2, [0]);
-    assert_eq!(indices3, [1]);
-    assert_eq!(indices4, [-1, 2]);
+    let mut copies: Vec<rkpb::Match> = Vec::new();
+    let vs = Vec::from([1, 2, 3, 1]);
+    let window = 2;
+    rk.search_greedy(&vs, &data, window, &mut copies);
+    let mut delta = Vec::new();
+    rk.compress(&data, &mut copies, &mut delta);
+    assert_eq!(
+      delta,
+      [
+        rkpb::COPY,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2,
+        rkpb::ADD,
+        0,
+        0,
+        0,
+        1,
+        1,
+        rkpb::COPY,
+        0,
+        0,
+        0,
+        2,
+        0,
+        0,
+        0,
+        2
+      ]
+    );
   }
 }

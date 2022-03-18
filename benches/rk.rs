@@ -25,7 +25,7 @@ fn criterion_benchmark(c: &mut Criterion) {
   group.bench_function("search_greedy", |b| {
     b.iter(|| {
       let rk = rkpb::RabinKarp::new(q);
-      let mut indices = vec![-1; source.len() - window + 1];
+      let mut indices: Vec<rkpb::Match> = Vec::new();
       rk.search_greedy(&source, &target, window, &mut indices);
     })
   });
