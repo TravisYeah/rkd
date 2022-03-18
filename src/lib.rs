@@ -31,7 +31,11 @@ impl RabinKarp {
     res
   }
   fn horner_constant(&self, m: usize) -> usize {
-    self.d.pow(m as u32 - 1) % self.q
+    let mut h = self.d;
+    for _ in 0..(m - 2) {
+      h = (h * h) % self.q;
+    }
+    return h;
   }
   fn precompute_hashes(
     &self,
