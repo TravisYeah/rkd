@@ -91,21 +91,43 @@ impl RabinKarp {
     self.precompute_hashes(source, window, h, &mut source_hashes);
     self.precompute_hashes(target, window, h, &mut target_hashes);
     let mut i = 0;
-
     let mut last_j = 0;
     while i < source_hashes.len() {
+      let mut ext = 0;
       let mut j = last_j;
+      let mut found = false;
       while j < target_hashes.len() {
-        if source_hashes[i] == target_hashes[j]
+        if found {
+          if source.len() > i + window + ext - 1
+            && target.len() > j + window + ext - 1
+            && source[i + window + ext - 1] == target[j + window + ext - 1]
+          {
+            let len = indices.len();
+            let last_ix = indices[len - 1];
+            indices[len - 1] = Match {
+              source: last_ix.source,
+              target: last_ix.target,
+              size: last_ix.size + 1,
+            };
+            ext += 1;
+            continue;
+          }
+        } else if source_hashes[i] == target_hashes[j]
           && source[i..(i + window)] == target[j..(j + window)]
         {
+          found = true;
           indices.push(Match {
             source: i,
             target: j,
             size: window,
           });
-          last_j += window;
-          i += window - 1;
+          ext += 1;
+          continue;
+        }
+        if found {
+          let size = indices[indices.len() - 1].size;
+          i += size - 1;
+          last_j += size - 1;
           break;
         }
         j += 1;
