@@ -97,6 +97,15 @@ impl RabinKarp {
       let mut j = last_j;
       let mut found = false;
       while j < target_hashes.len() {
+        println!("found: {:#?}", found);
+        println!("i: {:#?}", i);
+        println!("j: {:#?}", j);
+        println!("source[i]: {:#?}", source[i]);
+        println!("target[j]: {:#?}", target[j]);
+        println!("s_hash: {:#?}", source_hashes[i]);
+        println!("t_hash: {:#?}", target_hashes[j]);
+        println!("source[i + window + ext - 1]: {:#?}", source[i + window + ext - 1]);
+        println!("target[j + window + ext - 1]: {:#?}", target[i + window + ext - 1]);
         if found {
           if source.len() > i + window + ext - 1
             && target.len() > j + window + ext - 1
@@ -127,7 +136,7 @@ impl RabinKarp {
         if found {
           let size = indices[indices.len() - 1].size;
           i += size - 1;
-          last_j += size - 1;
+          last_j += size;
           break;
         }
         j += 1;

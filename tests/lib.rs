@@ -233,6 +233,51 @@
 //     );
 //   }
 
+  #[test]
+  fn compress_test_4() {
+    let data = Vec::from([1, 2, 9, 8, 7, 2, 1, 4, 5, 6, 3, 1, 2, 4]);
+    let q = 10_usize.pow(9) + 9;
+    let rk = rkpb::RabinKarp::new(q);
+    let mut copies: Vec<rkpb::Match> = Vec::new();
+    let vs = Vec::from([1, 2, 9, 8, 7, 2, 6, 3, 1, 2, 4]);
+    let window = 4;
+    rk.search_greedy(&vs, &data, window, &mut copies);
+    println!("{:#?}", copies);
+    let mut delta = Vec::new();
+    rk.compress(&data, &mut copies, &mut delta);
+    assert_eq!(
+      delta,
+      [
+        rkpb::COPY,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        6,
+        rkpb::ADD,
+        0,
+        0,
+        0,
+        3,
+        1,
+        4,
+        5,
+        rkpb::COPY,
+        0,
+        0,
+        0,
+        6,
+        0,
+        0,
+        0,
+        5
+      ]
+    );
+  }
+
 //   #[test]
 //   fn decompress() {
 //     let data = Vec::from([1, 2, 1, 3, 1]);
@@ -265,26 +310,27 @@
 //     assert_eq!(decompressed_data, data);
 //   }
 
-#[test]
-fn decompress_big_file() {
-  use std::io::Read;
-  let mut source_file = std::fs::File::open("benches/data/rk-wiki.txt").unwrap();
-  let mut target_file = std::fs::File::open("benches/data/rk-wiki-insert-p.txt").unwrap();
-  let mut source = Vec::new();
-  let mut target = Vec::new();
-  source_file.read_to_end(&mut source).unwrap();
-  target_file.read_to_end(&mut target).unwrap();
-  let q = 10_usize.pow(9) + 9;
-  let rk = rkpb::RabinKarp::new(q);
-  let mut copies: Vec<rkpb::Match> = Vec::new();
-  let window = 1 << 7;
-  rk.search_greedy(&source, &target, window, &mut copies);
-  let mut delta = Vec::new();
-  rk.compress(&target, &copies, &mut delta);
-  println!("{:#?}", &delta[0..32]);
-  // let mut decompressed_data = Vec::new();
-  // rk.decompress(&source, &mut decompressed_data, &delta);
-  // assert_eq!(decompressed_data, target);
-  // println!("{}", delta.len());
-}
+// #[test]
+// fn decompress_big_file() {
+//   use std::io::Read;
+//   let mut source_file = std::fs::File::open("benches/data/rk-wiki.txt").unwrap();
+//   let mut target_file = std::fs::File::open("benches/data/rk-wiki-small-change.txt").unwrap();
+//   let mut source = Vec::new();
+//   let mut target = Vec::new();
+//   source_file.read_to_end(&mut source).unwrap();
+//   target_file.read_to_end(&mut target).unwrap();
+//   let q = 10_usize.pow(9) + 9;
+//   let rk = rkpb::RabinKarp::new(q);
+//   let mut copies: Vec<rkpb::Match> = Vec::new();
+//   let window = 1 << 7;
+//   rk.search_greedy(&source, &target, window, &mut copies);
+//   let mut delta = Vec::new();
+//   rk.compress(&target, &copies, &mut delta);
+//   // println!("{:#?}", &delta[0..1024]);
+//   // let mut decompressed_data = Vec::new();
+//   // rk.decompress(&source, &mut decompressed_data, &delta);
+//   // assert_eq!(decompressed_data, target);
+//   println!("{}", delta.len());
+//   println!("{}", source.len());
+// }
 // }
