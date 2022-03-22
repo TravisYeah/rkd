@@ -85,6 +85,24 @@ mod tests {
   }
 
   #[test]
+  fn search_greedy_extended_window() {
+    let data = Vec::from([1, 2, 1, 3, 4, 5]);
+    let q = 10_usize.pow(9) + 9;
+    let rk = rkpb::RabinKarp::new(q);
+    let mut indices: Vec<rkpb::Match> = Vec::new();
+    let v = Vec::from([2, 1, 3, 4]);
+    rk.search_greedy(&v, &data, 2, &mut indices);
+    assert_eq!(
+      indices,
+      [rkpb::Match {
+        source: 0,
+        target: 1,
+        size: 4
+      }]
+    );
+  }
+
+  #[test]
   fn compress() {
     let data = Vec::from([1, 2, 1, 3, 1]);
     let q = 10_usize.pow(9) + 9;
@@ -167,6 +185,105 @@ mod tests {
   }
 
   #[test]
+  fn compress_test_3() {
+    let data = Vec::from([1, 2, 9, 1, 5, 6, 3, 1, 4]);
+    let q = 10_usize.pow(9) + 9;
+    let rk = rkpb::RabinKarp::new(q);
+    let mut copies: Vec<rkpb::Match> = Vec::new();
+    let vs = Vec::from([1, 2, 9, 6, 3, 1]);
+    let window = 2;
+    rk.search_greedy(&vs, &data, window, &mut copies);
+    let mut delta = Vec::new();
+    rk.compress(&data, &mut copies, &mut delta);
+    assert_eq!(
+      delta,
+      [
+        rkpb::COPY,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        3,
+        rkpb::ADD,
+        0,
+        0,
+        0,
+        2,
+        1,
+        5,
+        rkpb::COPY,
+        0,
+        0,
+        0,
+        3,
+        0,
+        0,
+        0,
+        3,
+        rkpb::ADD,
+        0,
+        0,
+        0,
+        1,
+        4,
+      ]
+    );
+  }
+
+  #[test]
+  fn compress_test_4() {
+    let data = Vec::from([1, 2, 9, 8, 7, 2, 1, 4, 5, 6, 3, 1, 2, 4, 3, 5]);
+    let q = 10_usize.pow(9) + 9;
+    let rk = rkpb::RabinKarp::new(q);
+    let mut copies: Vec<rkpb::Match> = Vec::new();
+    let vs = Vec::from([1, 2, 9, 8, 7, 2, 6, 3, 1, 2, 4, 3]);
+    let window = 3;
+    rk.search_greedy(&vs, &data, window, &mut copies);
+    let mut delta = Vec::new();
+    rk.compress(&data, &mut copies, &mut delta);
+    assert_eq!(
+      delta,
+      [
+        rkpb::COPY,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        6,
+        rkpb::ADD,
+        0,
+        0,
+        0,
+        3,
+        1,
+        4,
+        5,
+        rkpb::COPY,
+        0,
+        0,
+        0,
+        6,
+        0,
+        0,
+        0,
+        6,
+        rkpb::ADD,
+        0,
+        0,
+        0,
+        1,
+        5
+      ]
+    );
+  }
+
+  #[test]
   fn decompress() {
     let data = Vec::from([1, 2, 1, 3, 1]);
     let q = 10_usize.pow(9) + 9;
@@ -207,13 +324,15 @@ mod tests {
     let mut target = Vec::new();
     source_file.read_to_end(&mut source).unwrap();
     target_file.read_to_end(&mut target).unwrap();
+
     let q = 10_usize.pow(9) + 9;
     let rk = rkpb::RabinKarp::new(q);
     let mut copies: Vec<rkpb::Match> = Vec::new();
-    let window = 1 << 7;
+    let window = 4;
     rk.search_greedy(&source, &target, window, &mut copies);
     let mut delta = Vec::new();
     rk.compress(&target, &copies, &mut delta);
+
     let mut decompressed_data = Vec::new();
     rk.decompress(&source, &mut decompressed_data, &delta);
     assert_eq!(decompressed_data, target);
