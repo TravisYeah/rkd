@@ -22,21 +22,14 @@ fn criterion_benchmark(c: &mut Criterion) {
   group.bench_function("search", |b| {
     b.iter(|| {
       let rk = rkpb::RabinKarp::new(q);
-      let mut indices = vec![-1; source.len() - window + 1];
-      rk.search(&source, &target, window, &mut indices);
-    })
-  });
-  group.bench_function("search_greedy", |b| {
-    b.iter(|| {
-      let rk = rkpb::RabinKarp::new(q);
       let mut indices: Vec<rkpb::Match> = Vec::new();
-      rk.search_greedy(&source, &target, window, &mut indices);
+      rk.search(&source, &target, window, &mut indices);
     })
   });
   group.bench_function("compress", |b| {
     let rk = rkpb::RabinKarp::new(q);
     let mut indices: Vec<rkpb::Match> = Vec::new();
-    rk.search_greedy(&source, &target, window, &mut indices);
+    rk.search(&source, &target, window, &mut indices);
     b.iter(|| {
       let mut delta = Vec::new();
       rk.compress(&target, &indices, &mut delta);
@@ -45,7 +38,7 @@ fn criterion_benchmark(c: &mut Criterion) {
   group.bench_function("decompress", |b| {
     let rk = rkpb::RabinKarp::new(q);
     let mut indices: Vec<rkpb::Match> = Vec::new();
-    rk.search_greedy(&source, &target, window, &mut indices);
+    rk.search(&source, &target, window, &mut indices);
     let mut delta = Vec::new();
     rk.compress(&target, &indices, &mut delta);
     b.iter(|| {
