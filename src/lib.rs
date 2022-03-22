@@ -1,3 +1,5 @@
+use std::io::{Read, Write};
+
 pub static ADD: u8 = 0;
 pub static COPY: u8 = 1;
 
@@ -167,5 +169,43 @@ impl RabinKarpDelta {
         target.extend(source[offset..(offset + size)].iter());
       }
     }
+  }
+  pub fn create_delta_file(source: &str, target: &str, delta: &str) {
+    let mut source_file = std::fs::File::open(source).unwrap();
+    let mut target_file = std::fs::File::open(target).unwrap();
+    let mut source_bytes = Vec::new();
+    let mut target_bytes = Vec::new();
+    source_file.read_to_end(&mut source_bytes).unwrap();
+    target_file.read_to_end(&mut target_bytes).unwrap();
+    let q = 10_usize.pow(9) + 9;
+    let rk = RabinKarpDelta::new(q);
+    let mut copies: Vec<Match> = Vec::new();
+    let window = 4;
+    rk.search(&source_bytes, &target_bytes, window, &mut copies);
+    let mut delta_bytes = Vec::new();
+    rk.compress(&target_bytes, &copies, &mut delta_bytes);
+    let mut delta_file = std::fs::File::open(delta).unwrap();
+    delta_file.write_all(&delta_bytes).unwrap();
+  }
+  pub fn create_target_file(source: &str, target: &str, delta: &str) {
+    let mut source_file = std::fs::File::open(source).unwrap();
+    let mut target_file = std::fs::File::open(target).unwrap();
+    let mut source_bytes = Vec::new();
+    let mut target_bytes = Vec::new();
+    source_file.read_to_end(&mut source_bytes).unwrap();
+    target_file.read_to_end(&mut target_bytes).unwrap();
+    let q = 10_usize.pow(9) + 9;
+    let rk = RabinKarpDelta::new(q);
+    let mut copies: Vec<Match> = Vec::new();
+    let window = 4;
+    rk.search(&source_bytes, &target_bytes, window, &mut copies);
+    let mut delta_bytes = Vec::new();
+    rk.compress(&target_bytes, &copies, &mut delta_bytes);
+    let mut delta_file = std::fs::File::open(delta).unwrap();
+    delta_file.write_all(&delta_bytes).unwrap();
+
+    let mut decompressed_data = Vec::new();
+    rk.decompress(&source, &mut decompressed_data, &delta);
+    target_file.write_all(decompressed_data).unwrap();
   }
 }
