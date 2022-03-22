@@ -21,14 +21,14 @@ fn criterion_benchmark(c: &mut Criterion) {
   group.sample_size(20);
   group.bench_function("search", |b| {
     b.iter(|| {
-      let rk = rkpb::RabinKarp::new(q);
-      let mut indices: Vec<rkpb::Match> = Vec::new();
+      let rk = rk_delta::RabinKarpDelta::new(q);
+      let mut indices: Vec<rk_delta::Match> = Vec::new();
       rk.search(&source, &target, window, &mut indices);
     })
   });
   group.bench_function("compress", |b| {
-    let rk = rkpb::RabinKarp::new(q);
-    let mut indices: Vec<rkpb::Match> = Vec::new();
+    let rk = rk_delta::RabinKarpDelta::new(q);
+    let mut indices: Vec<rk_delta::Match> = Vec::new();
     rk.search(&source, &target, window, &mut indices);
     b.iter(|| {
       let mut delta = Vec::new();
@@ -36,8 +36,8 @@ fn criterion_benchmark(c: &mut Criterion) {
     })
   });
   group.bench_function("decompress", |b| {
-    let rk = rkpb::RabinKarp::new(q);
-    let mut indices: Vec<rkpb::Match> = Vec::new();
+    let rk = rk_delta::RabinKarpDelta::new(q);
+    let mut indices: Vec<rk_delta::Match> = Vec::new();
     rk.search(&source, &target, window, &mut indices);
     let mut delta = Vec::new();
     rk.compress(&target, &indices, &mut delta);

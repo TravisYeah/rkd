@@ -4,11 +4,11 @@ mod tests {
   fn search() {
     let data = Vec::from([1, 2, 1, 3]);
     let q = 10_usize.pow(9) + 9;
-    let rk = rkpb::RabinKarp::new(q);
-    let mut indices1: Vec<rkpb::Match> = Vec::new();
-    let mut indices2: Vec<rkpb::Match> = Vec::new();
-    let mut indices3: Vec<rkpb::Match> = Vec::new();
-    let mut indices4: Vec<rkpb::Match> = Vec::new();
+    let rk = rk_delta::RabinKarpDelta::new(q);
+    let mut indices1: Vec<rk_delta::Match> = Vec::new();
+    let mut indices2: Vec<rk_delta::Match> = Vec::new();
+    let mut indices3: Vec<rk_delta::Match> = Vec::new();
+    let mut indices4: Vec<rk_delta::Match> = Vec::new();
     let v1 = Vec::from([1, 1]);
     let v2 = Vec::from([1, 2]);
     let v3 = Vec::from([2, 1]);
@@ -20,7 +20,7 @@ mod tests {
     assert_eq!(indices1, []);
     assert_eq!(
       indices2,
-      [rkpb::Match {
+      [rk_delta::Match {
         source: 0,
         target: 0,
         size: 2
@@ -28,7 +28,7 @@ mod tests {
     );
     assert_eq!(
       indices3,
-      [rkpb::Match {
+      [rk_delta::Match {
         source: 0,
         target: 1,
         size: 2
@@ -36,7 +36,7 @@ mod tests {
     );
     assert_eq!(
       indices4,
-      [rkpb::Match {
+      [rk_delta::Match {
         source: 1,
         target: 2,
         size: 2
@@ -48,13 +48,13 @@ mod tests {
   fn search_extended_window() {
     let data = Vec::from([1, 2, 1, 3, 4, 5]);
     let q = 10_usize.pow(9) + 9;
-    let rk = rkpb::RabinKarp::new(q);
-    let mut indices: Vec<rkpb::Match> = Vec::new();
+    let rk = rk_delta::RabinKarpDelta::new(q);
+    let mut indices: Vec<rk_delta::Match> = Vec::new();
     let v = Vec::from([2, 1, 3, 4]);
     rk.search(&v, &data, 2, &mut indices);
     assert_eq!(
       indices,
-      [rkpb::Match {
+      [rk_delta::Match {
         source: 0,
         target: 1,
         size: 4
@@ -66,8 +66,8 @@ mod tests {
   fn compress() {
     let data = Vec::from([1, 2, 1, 3, 1]);
     let q = 10_usize.pow(9) + 9;
-    let rk = rkpb::RabinKarp::new(q);
-    let mut copies: Vec<rkpb::Match> = Vec::new();
+    let rk = rk_delta::RabinKarpDelta::new(q);
+    let mut copies: Vec<rk_delta::Match> = Vec::new();
     let vs = Vec::from([1, 1, 3]);
     let window = 2;
     rk.search(&vs, &data, window, &mut copies);
@@ -76,14 +76,14 @@ mod tests {
     assert_eq!(
       delta,
       [
-        rkpb::ADD,
+        rk_delta::ADD,
         0,
         0,
         0,
         2,
         1,
         2,
-        rkpb::COPY,
+        rk_delta::COPY,
         0,
         0,
         0,
@@ -92,7 +92,7 @@ mod tests {
         0,
         0,
         2,
-        rkpb::ADD,
+        rk_delta::ADD,
         0,
         0,
         0,
@@ -106,8 +106,8 @@ mod tests {
   fn compress_test_2() {
     let data = Vec::from([1, 2, 1, 3, 1]);
     let q = 10_usize.pow(9) + 9;
-    let rk = rkpb::RabinKarp::new(q);
-    let mut copies: Vec<rkpb::Match> = Vec::new();
+    let rk = rk_delta::RabinKarpDelta::new(q);
+    let mut copies: Vec<rk_delta::Match> = Vec::new();
     let vs = Vec::from([1, 2, 3, 1]);
     let window = 2;
     rk.search(&vs, &data, window, &mut copies);
@@ -116,7 +116,7 @@ mod tests {
     assert_eq!(
       delta,
       [
-        rkpb::COPY,
+        rk_delta::COPY,
         0,
         0,
         0,
@@ -125,13 +125,13 @@ mod tests {
         0,
         0,
         2,
-        rkpb::ADD,
+        rk_delta::ADD,
         0,
         0,
         0,
         1,
         1,
-        rkpb::COPY,
+        rk_delta::COPY,
         0,
         0,
         0,
@@ -148,8 +148,8 @@ mod tests {
   fn compress_test_3() {
     let data = Vec::from([1, 2, 9, 1, 5, 6, 3, 1, 4]);
     let q = 10_usize.pow(9) + 9;
-    let rk = rkpb::RabinKarp::new(q);
-    let mut copies: Vec<rkpb::Match> = Vec::new();
+    let rk = rk_delta::RabinKarpDelta::new(q);
+    let mut copies: Vec<rk_delta::Match> = Vec::new();
     let vs = Vec::from([1, 2, 9, 6, 3, 1]);
     let window = 2;
     rk.search(&vs, &data, window, &mut copies);
@@ -158,7 +158,7 @@ mod tests {
     assert_eq!(
       delta,
       [
-        rkpb::COPY,
+        rk_delta::COPY,
         0,
         0,
         0,
@@ -167,14 +167,14 @@ mod tests {
         0,
         0,
         3,
-        rkpb::ADD,
+        rk_delta::ADD,
         0,
         0,
         0,
         2,
         1,
         5,
-        rkpb::COPY,
+        rk_delta::COPY,
         0,
         0,
         0,
@@ -183,7 +183,7 @@ mod tests {
         0,
         0,
         3,
-        rkpb::ADD,
+        rk_delta::ADD,
         0,
         0,
         0,
@@ -197,8 +197,8 @@ mod tests {
   fn compress_test_4() {
     let data = Vec::from([1, 2, 9, 8, 7, 2, 1, 4, 5, 6, 3, 1, 2, 4, 3, 5]);
     let q = 10_usize.pow(9) + 9;
-    let rk = rkpb::RabinKarp::new(q);
-    let mut copies: Vec<rkpb::Match> = Vec::new();
+    let rk = rk_delta::RabinKarpDelta::new(q);
+    let mut copies: Vec<rk_delta::Match> = Vec::new();
     let vs = Vec::from([1, 2, 9, 8, 7, 2, 6, 3, 1, 2, 4, 3]);
     let window = 3;
     rk.search(&vs, &data, window, &mut copies);
@@ -207,7 +207,7 @@ mod tests {
     assert_eq!(
       delta,
       [
-        rkpb::COPY,
+        rk_delta::COPY,
         0,
         0,
         0,
@@ -216,7 +216,7 @@ mod tests {
         0,
         0,
         6,
-        rkpb::ADD,
+        rk_delta::ADD,
         0,
         0,
         0,
@@ -224,7 +224,7 @@ mod tests {
         1,
         4,
         5,
-        rkpb::COPY,
+        rk_delta::COPY,
         0,
         0,
         0,
@@ -233,7 +233,7 @@ mod tests {
         0,
         0,
         6,
-        rkpb::ADD,
+        rk_delta::ADD,
         0,
         0,
         0,
@@ -247,8 +247,8 @@ mod tests {
   fn decompress() {
     let data = Vec::from([1, 2, 1, 3, 1]);
     let q = 10_usize.pow(9) + 9;
-    let rk = rkpb::RabinKarp::new(q);
-    let mut copies: Vec<rkpb::Match> = Vec::new();
+    let rk = rk_delta::RabinKarpDelta::new(q);
+    let mut copies: Vec<rk_delta::Match> = Vec::new();
     let vs = Vec::from([1, 1, 3]);
     let window = 2;
     rk.search(&vs, &data, window, &mut copies);
@@ -263,8 +263,8 @@ mod tests {
   fn decompress_2() {
     let data = Vec::from([1, 2, 1, 3, 1]);
     let q = 10_usize.pow(9) + 9;
-    let rk = rkpb::RabinKarp::new(q);
-    let mut copies: Vec<rkpb::Match> = Vec::new();
+    let rk = rk_delta::RabinKarpDelta::new(q);
+    let mut copies: Vec<rk_delta::Match> = Vec::new();
     let vs = Vec::from([1, 2, 3, 1]);
     let window = 2;
     rk.search(&vs, &data, window, &mut copies);
@@ -286,8 +286,8 @@ mod tests {
     target_file.read_to_end(&mut target).unwrap();
 
     let q = 10_usize.pow(9) + 9;
-    let rk = rkpb::RabinKarp::new(q);
-    let mut copies: Vec<rkpb::Match> = Vec::new();
+    let rk = rk_delta::RabinKarpDelta::new(q);
+    let mut copies: Vec<rk_delta::Match> = Vec::new();
     let window = 4;
     rk.search(&source, &target, window, &mut copies);
     let mut delta = Vec::new();

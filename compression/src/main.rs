@@ -15,8 +15,8 @@ fn delta_compress(writer: &mut Writer<std::fs::File>, title: &str, description: 
   source_file.read_to_end(&mut source).unwrap();
   target_file.read_to_end(&mut target).unwrap();
   let q = 10_usize.pow(9) + 9;
-  let rk = rkpb::RabinKarp::new(q);
-  let mut copies: Vec<rkpb::Match> = Vec::new();
+  let rk = rk_delta::RabinKarpDelta::new(q);
+  let mut copies: Vec<rk_delta::Match> = Vec::new();
   let window = 1 << 7;
   rk.search(&source, &target, window, &mut copies);
   let mut delta = Vec::new();

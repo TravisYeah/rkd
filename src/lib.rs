@@ -8,14 +8,14 @@ pub struct Match {
   pub size: usize,
 }
 
-pub struct RabinKarp {
+pub struct RabinKarpDelta {
   d: usize,
   q: usize,
 }
 
-impl RabinKarp {
-  pub fn new(q: usize) -> RabinKarp {
-    RabinKarp { d: 1 << 8, q }
+impl RabinKarpDelta {
+  pub fn new(q: usize) -> RabinKarpDelta {
+    RabinKarpDelta { d: 1 << 8, q }
   }
   fn hash(&self, items: &Vec<u8>, m: usize) -> usize {
     let mut res = 0;
