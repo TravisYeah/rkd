@@ -1,0 +1,2 @@
+title               	description         	file_source         	file_target         	source_file_size    	target_file_size    	delta_size          
+rabin karp wiki     	insert middle       	rk-wiki.txt         	rk-wiki-insert-p.txt	13729               	13847               	141                 
