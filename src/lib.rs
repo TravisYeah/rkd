@@ -31,9 +31,9 @@ impl RabinKarp {
     res
   }
   fn horner_constant(&self, m: usize) -> usize {
-    let mut h = self.d;
-    for _ in 0..(m - 2) {
-      h = (h * h) % self.q;
+    let mut h = 1;
+    for _ in 0..(m - 1) {
+      h = (h * self.d) % self.q;
     }
     return h;
   }
@@ -97,15 +97,6 @@ impl RabinKarp {
       let mut j = last_j;
       let mut found = false;
       while j < target_hashes.len() {
-        println!("found: {:#?}", found);
-        println!("i: {:#?}", i);
-        println!("j: {:#?}", j);
-        println!("source[i]: {:#?}", source[i]);
-        println!("target[j]: {:#?}", target[j]);
-        println!("s_hash: {:#?}", source_hashes[i]);
-        println!("t_hash: {:#?}", target_hashes[j]);
-        println!("source[i + window + ext - 1]: {:#?}", source[i + window + ext - 1]);
-        println!("target[j + window + ext - 1]: {:#?}", target[i + window + ext - 1]);
         if found {
           if source.len() > i + window + ext - 1
             && target.len() > j + window + ext - 1
