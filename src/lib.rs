@@ -4,6 +4,8 @@ use lzzzz::lz4;
 
 pub static ADD: u8 = 0;
 pub static COPY: u8 = 1;
+pub static RKD: &[u8] = "rkd".as_bytes();
+pub static VERSION: [u8; 3] = [0,1,0];
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Match {
