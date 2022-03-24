@@ -255,7 +255,7 @@ mod tests {
     let mut delta = Vec::new();
     rk.compress(&data, &mut copies, &mut delta);
     let mut decompressed_data = Vec::new();
-    rk.decompress(&vs, &mut decompressed_data, &delta);
+    rk_delta::RabinKarpDelta::decompress(&vs, &mut decompressed_data, &delta);
     assert_eq!(decompressed_data, data);
   }
 
@@ -271,7 +271,7 @@ mod tests {
     let mut delta = Vec::new();
     rk.compress(&data, &mut copies, &mut delta);
     let mut decompressed_data = Vec::new();
-    rk.decompress(&vs, &mut decompressed_data, &delta);
+    rk_delta::RabinKarpDelta::decompress(&vs, &mut decompressed_data, &delta);
     assert_eq!(decompressed_data, data);
   }
 
@@ -294,7 +294,28 @@ mod tests {
     rk.compress(&target, &copies, &mut delta);
 
     let mut decompressed_data = Vec::new();
-    rk.decompress(&source, &mut decompressed_data, &delta);
+    rk_delta::RabinKarpDelta::decompress(&source, &mut decompressed_data, &delta);
     assert_eq!(decompressed_data, target);
+  }
+
+  #[test]
+  fn file_helper_methods() {
+    use std::io::Read;
+    let source = "benches/data/rk-wiki.txt";
+    let target = "benches/data/rk-wiki-insert-p.txt";
+    let delta = "benches/data/rk-wiki-insert-p-delta.txt";
+    let target_recreated = "benches/data/rk-wiki-insert-p-recreated.txt";
+    let mut target_file = std::fs::File::open(target).unwrap();
+    let mut target_bytes = Vec::new();
+    target_file.read_to_end(&mut target_bytes).unwrap();
+
+    rk_delta::RabinKarpDelta::create_delta_file(&source, &target, &delta);
+    let mut target_file_recreated = std::fs::File::open(target_recreated).unwrap();
+    let mut target_bytes_recreated = Vec::new();
+    rk_delta::RabinKarpDelta::create_target_file(source, target_recreated, delta);
+    target_file_recreated
+      .read_to_end(&mut target_bytes_recreated)
+      .unwrap();
+    assert_eq!(target_bytes, target_bytes_recreated);
   }
 }
