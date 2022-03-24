@@ -5,7 +5,8 @@ use lzzzz::lz4;
 pub static ADD: u8 = 0;
 pub static COPY: u8 = 1;
 pub static RKD: &[u8] = "rkd".as_bytes();
-pub static VERSION: [u8; 2] = [1,0];
+pub static VERSION: [u8; 2] = [1, 0];
+pub static MAX_VEC_SIZE: u32 = u32::MAX;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Match {
@@ -70,6 +71,12 @@ impl RabinKarpDelta {
     window: usize,
     indices: &mut Vec<Match>,
   ) -> () {
+    if source.len() > MAX_VEC_SIZE as usize {
+      panic!("Source file larger than max ({}).", MAX_VEC_SIZE);
+    }
+    if target.len() > MAX_VEC_SIZE as usize {
+      panic!("Target file larger than max ({}).", MAX_VEC_SIZE);
+    }
     let h = self.horner_constant(window);
     let mut source_hashes = Vec::new();
     let mut target_hashes = Vec::new();
@@ -211,17 +218,15 @@ impl RabinKarpDelta {
       panic!("Invalid RKD delta file.");
     }
     if compressed_delta_bytes[3] != VERSION[0] {
-      panic!("RKD version {}.{} cannot process delta file version {}.{}.", VERSION[0], VERSION[1], compressed_delta_bytes[3], compressed_delta_bytes[4])
+      panic!(
+        "RKD version {}.{} cannot process delta file version {}.{}.",
+        VERSION[0], VERSION[1], compressed_delta_bytes[3], compressed_delta_bytes[4]
+      )
     }
-    let decompressed_delta_size =
-      read_u32(&compressed_delta_bytes, 5);
-      let mut delta_bytes = vec![0; decompressed_delta_size.try_into().unwrap()];
+    let decompressed_delta_size = read_u32(&compressed_delta_bytes, 5);
+    let mut delta_bytes = vec![0; decompressed_delta_size.try_into().unwrap()];
     let delta_bytes_to_decompress = &compressed_delta_bytes[9..];
-    lz4::decompress(
-      &delta_bytes_to_decompress,
-      &mut delta_bytes,
-    )
-    .unwrap();
+    lz4::decompress(&delta_bytes_to_decompress, &mut delta_bytes).unwrap();
     let mut decompressed_data = Vec::new();
     RabinKarpDelta::decompress(&source_bytes, &mut decompressed_data, &delta_bytes);
     std::fs::write(target, decompressed_data).unwrap();
