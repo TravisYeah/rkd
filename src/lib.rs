@@ -1,5 +1,7 @@
 use std::io::Read;
 
+use lzzzz::lz4;
+
 pub static ADD: u8 = 0;
 pub static COPY: u8 = 1;
 
@@ -185,17 +187,35 @@ impl RabinKarpDelta {
     rk.search(&source_bytes, &target_bytes, window, &mut copies);
     let mut delta_bytes = Vec::new();
     rk.compress(&target_bytes, &copies, &mut delta_bytes);
-    std::fs::write(delta, delta_bytes).unwrap();
+    let mut compressed_delta_bytes = Vec::new();
+    lz4::compress_to_vec(
+      &delta_bytes,
+      &mut compressed_delta_bytes,
+      lz4::ACC_LEVEL_DEFAULT,
+    )
+    .unwrap();
+    compressed_delta_bytes.append(&mut Vec::from(delta_bytes.len().to_be_bytes()));
+    std::fs::write(delta, compressed_delta_bytes).unwrap();
   }
   pub fn create_target_file(source: &str, target: &str, delta: &str) {
     let mut source_file = std::fs::File::open(source).unwrap();
     let mut delta_file = std::fs::File::open(delta).unwrap();
     let mut source_bytes = Vec::new();
     source_file.read_to_end(&mut source_bytes).unwrap();
-    let mut delta_bytes = Vec::new();
-    delta_file.read_to_end(&mut delta_bytes).unwrap();
-    let mut decompressed_data = Vec::new();
-    RabinKarpDelta::decompress(&source_bytes, &mut decompressed_data, &delta_bytes);
-    std::fs::write(target, decompressed_data).unwrap();
+    let mut compressed_delta_bytes = Vec::new();
+    delta_file.read_to_end(&mut compressed_delta_bytes).unwrap();
+    let decompressed_delta_size =
+      read_u32(&compressed_delta_bytes, compressed_delta_bytes.len() - 4);
+    println!("{}", decompressed_delta_size);
+    let mut delta_bytes = vec![0; decompressed_delta_size.try_into().unwrap()];
+    // delta_bytes.resize(500, 0);
+    lz4::decompress(
+      &compressed_delta_bytes[0..(compressed_delta_bytes.len() - 4)],
+      &mut delta_bytes,
+    )
+    .unwrap();
+    // let mut decompressed_data = Vec::new();
+    // RabinKarpDelta::decompress(&source_bytes, &mut decompressed_data, &delta_bytes);
+    // std::fs::write(target, decompressed_data).unwrap();
   }
 }

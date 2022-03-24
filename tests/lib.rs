@@ -318,4 +318,21 @@ mod tests {
       .unwrap();
     assert_eq!(target_bytes, target_bytes_recreated);
   }
+
+  #[test]
+  fn testit() {
+    use lzzzz::lz4;
+
+    let data: Vec<u8> = Vec::from("The quick brown fox jumps over the lazy dog.");
+
+    // LZ4 compression
+    let mut comp = Vec::new();
+    lz4::compress_to_vec(&data, &mut comp, lz4::ACC_LEVEL_DEFAULT).unwrap();
+
+    // LZ4/LZ4_HC decompression
+    let mut decomp = Vec::new();
+    lz4::decompress(&comp, &mut decomp).unwrap();
+
+    assert_eq!(data, decomp);
+  }
 }
