@@ -310,29 +310,12 @@ mod tests {
     target_file.read_to_end(&mut target_bytes).unwrap();
 
     rk_delta::RabinKarpDelta::create_delta_file(&source, &target, &delta);
-    let mut target_file_recreated = std::fs::File::open(target_recreated).unwrap();
     let mut target_bytes_recreated = Vec::new();
     rk_delta::RabinKarpDelta::create_target_file(source, target_recreated, delta);
+    let mut target_file_recreated = std::fs::File::open(target_recreated).unwrap();
     target_file_recreated
       .read_to_end(&mut target_bytes_recreated)
       .unwrap();
     assert_eq!(target_bytes, target_bytes_recreated);
-  }
-
-  #[test]
-  fn testit() {
-    use lzzzz::lz4;
-
-    let data: Vec<u8> = Vec::from("The quick brown fox jumps over the lazy dog.");
-
-    // LZ4 compression
-    let mut comp = Vec::new();
-    lz4::compress_to_vec(&data, &mut comp, lz4::ACC_LEVEL_DEFAULT).unwrap();
-
-    // LZ4/LZ4_HC decompression
-    let mut decomp = Vec::new();
-    lz4::decompress(&comp, &mut decomp).unwrap();
-
-    assert_eq!(data, decomp);
   }
 }
