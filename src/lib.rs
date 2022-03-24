@@ -1,11 +1,11 @@
-use std::io::Read;
+use std::{io::Read, panic};
 
 use lzzzz::lz4;
 
 pub static ADD: u8 = 0;
 pub static COPY: u8 = 1;
 pub static RKD: &[u8] = "rkd".as_bytes();
-pub static VERSION: [u8; 3] = [0,1,0];
+pub static VERSION: [u8; 2] = [1,0];
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Match {
@@ -190,13 +190,14 @@ impl RabinKarpDelta {
     let mut delta_bytes = Vec::new();
     rk.compress(&target_bytes, &copies, &mut delta_bytes);
     let mut compressed_delta_bytes = Vec::new();
+    compressed_delta_bytes.append(&mut [RKD, &VERSION].concat());
+    compressed_delta_bytes.append(&mut Vec::from((delta_bytes.len() as u32).to_be_bytes()));
     lz4::compress_to_vec(
       &delta_bytes,
       &mut compressed_delta_bytes,
       lz4::ACC_LEVEL_DEFAULT,
     )
     .unwrap();
-    compressed_delta_bytes.append(&mut Vec::from((delta_bytes.len() as u32).to_be_bytes()));
     std::fs::write(delta, compressed_delta_bytes).unwrap();
   }
   pub fn create_target_file(source: &str, target: &str, delta: &str) {
@@ -206,10 +207,16 @@ impl RabinKarpDelta {
     source_file.read_to_end(&mut source_bytes).unwrap();
     let mut compressed_delta_bytes = Vec::new();
     delta_file.read_to_end(&mut compressed_delta_bytes).unwrap();
+    if compressed_delta_bytes[0..3] != *RKD {
+      panic!("Invalid RKD delta file.");
+    }
+    if compressed_delta_bytes[3] != VERSION[0] {
+      panic!("RKD version {}.{} cannot process delta file version {}.{}.", VERSION[0], VERSION[1], compressed_delta_bytes[3], compressed_delta_bytes[4])
+    }
     let decompressed_delta_size =
-      read_u32(&compressed_delta_bytes, compressed_delta_bytes.len() - 4);
+      read_u32(&compressed_delta_bytes, 5);
       let mut delta_bytes = vec![0; decompressed_delta_size.try_into().unwrap()];
-    let delta_bytes_to_decompress = &compressed_delta_bytes[0..(compressed_delta_bytes.len() - 4)];
+    let delta_bytes_to_decompress = &compressed_delta_bytes[9..];
     lz4::decompress(
       &delta_bytes_to_decompress,
       &mut delta_bytes,
