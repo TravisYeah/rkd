@@ -43,7 +43,7 @@ fn criterion_benchmark(c: &mut Criterion) {
     rk.compress(&target, &indices, &mut delta);
     b.iter(|| {
       let mut decompressed_data = Vec::new();
-      rk.decompress(&source, &mut decompressed_data, &delta);
+      rk_delta::RabinKarpDelta::decompress(&source, &mut decompressed_data, &delta);
     })
   });
 }

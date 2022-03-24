@@ -1,4 +1,4 @@
-use std::io::{Read, Write};
+use std::io::Read;
 
 pub static ADD: u8 = 0;
 pub static COPY: u8 = 1;
