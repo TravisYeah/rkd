@@ -6,7 +6,6 @@ pub static ADD: u8 = 0;
 pub static COPY: u8 = 1;
 pub static RKD: &[u8] = "rkd".as_bytes();
 pub static VERSION: [u8; 2] = [1, 0];
-pub static MAX_INDEX: u32 = u32::MAX;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Match {
@@ -71,12 +70,6 @@ impl RabinKarpDelta {
     window: usize,
     indices: &mut Vec<Match>,
   ) -> () {
-    if source.len() > MAX_INDEX as usize {
-      panic!("Source file larger than max ({}).", MAX_INDEX);
-    }
-    if target.len() > MAX_INDEX as usize {
-      panic!("Target file larger than max ({}).", MAX_INDEX);
-    }
     let h = self.horner_constant(window);
     let mut source_hashes = Vec::new();
     let mut target_hashes = Vec::new();
