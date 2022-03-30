@@ -309,7 +309,7 @@ mod tests {
     let mut target_bytes = Vec::new();
     target_file.read_to_end(&mut target_bytes).unwrap();
 
-    rk_delta::RabinKarpDelta::create_delta_file(&source, &target, &delta);
+    rk_delta::RabinKarpDelta::create_delta_file(&source, &target, &delta, 4, 10_usize.pow(9) + 9);
     let mut target_bytes_recreated = Vec::new();
     rk_delta::RabinKarpDelta::create_target_file(source, target_recreated, delta);
     let mut target_file_recreated = std::fs::File::open(target_recreated).unwrap();

@@ -175,17 +175,15 @@ impl RabinKarpDelta {
       }
     }
   }
-  pub fn create_delta_file(source: &str, target: &str, delta: &str) {
+  pub fn create_delta_file(source: &str, target: &str, delta: &str, window: usize, prime: usize) {
     let mut source_file = std::fs::File::open(source).unwrap();
     let mut target_file = std::fs::File::open(target).unwrap();
     let mut source_bytes = Vec::new();
     let mut target_bytes = Vec::new();
     source_file.read_to_end(&mut source_bytes).unwrap();
     target_file.read_to_end(&mut target_bytes).unwrap();
-    let q = 10_usize.pow(9) + 9;
-    let rk = RabinKarpDelta::new(q);
+    let rk = RabinKarpDelta::new(prime);
     let mut copies: Vec<Match> = Vec::new();
-    let window = 4;
     rk.search(&source_bytes, &target_bytes, window, &mut copies);
     let mut delta_bytes = Vec::new();
     rk.compress(&target_bytes, &copies, &mut delta_bytes);
