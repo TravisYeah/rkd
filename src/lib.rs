@@ -6,6 +6,7 @@ pub static ADD: u8 = 0;
 pub static COPY: u8 = 1;
 pub static RKD: &[u8] = "rkd".as_bytes();
 pub static VERSION: [u8; 2] = [1, 0];
+pub static NUM_BYTES: usize = 8;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Match {
@@ -19,8 +20,8 @@ pub struct RabinKarpDelta {
   q: usize,
 }
 
-fn read_u32(bytes: &Vec<u8>, offset: usize) -> u32 {
-  u32::from_be_bytes(bytes[offset..(offset + 4)].try_into().unwrap())
+fn read_u64(bytes: &Vec<u8>, offset: usize) -> u64 {
+  u64::from_be_bytes(bytes[offset..(offset + NUM_BYTES)].try_into().unwrap())
 }
 
 impl RabinKarpDelta {
@@ -125,7 +126,7 @@ impl RabinKarpDelta {
 
   fn add(&self, target: &Vec<u8>, start: usize, end: usize, delta: &mut Vec<u8>) {
     delta.append(&mut Vec::from([ADD]));
-    let add_size: u32 = (end - start).try_into().unwrap();
+    let add_size: u64 = (end - start).try_into().unwrap();
     delta.append(&mut Vec::from(add_size.to_be_bytes()));
     let mut add_data = Vec::new();
     add_data.resize(end - start, 0);
@@ -143,9 +144,9 @@ impl RabinKarpDelta {
         self.add(target, last_copy_ix, m.target, delta);
       }
       delta.append(&mut Vec::from([COPY]));
-      let copy_offset: u32 = m.source.try_into().unwrap();
+      let copy_offset: u64 = m.source.try_into().unwrap();
       delta.append(&mut Vec::from(copy_offset.to_be_bytes()));
-      let copy_size: u32 = m.size.try_into().unwrap();
+      let copy_size: u64 = m.size.try_into().unwrap();
       delta.append(&mut Vec::from(copy_size.to_be_bytes()));
       last_copy_ix = m.target + m.size;
     }
@@ -161,16 +162,16 @@ impl RabinKarpDelta {
       let action = delta[i];
       i += 1;
       if action == ADD {
-        let size = read_u32(delta, i) as usize;
-        i += 4;
+        let size = read_u64(delta, i) as usize;
+        i += NUM_BYTES;
         target.extend(delta[i..(i + size)].iter());
         i += size;
       }
       if action == COPY {
-        let offset = read_u32(delta, i) as usize;
-        i += 4;
-        let size = read_u32(delta, i) as usize;
-        i += 4;
+        let offset = read_u64(delta, i) as usize;
+        i += NUM_BYTES;
+        let size = read_u64(delta, i) as usize;
+        i += NUM_BYTES;
         target.extend(source[offset..(offset + size)].iter());
       }
     }
@@ -189,7 +190,7 @@ impl RabinKarpDelta {
     rk.compress(&target_bytes, &copies, &mut delta_bytes);
     let mut compressed_delta_bytes = Vec::new();
     compressed_delta_bytes.append(&mut [RKD, &VERSION].concat());
-    compressed_delta_bytes.append(&mut Vec::from((delta_bytes.len() as u32).to_be_bytes()));
+    compressed_delta_bytes.append(&mut Vec::from((delta_bytes.len() as u64).to_be_bytes()));
     lz4::compress_to_vec(
       &delta_bytes,
       &mut compressed_delta_bytes,
@@ -214,9 +215,9 @@ impl RabinKarpDelta {
         VERSION[0], VERSION[1], compressed_delta_bytes[3], compressed_delta_bytes[4]
       )
     }
-    let decompressed_delta_size = read_u32(&compressed_delta_bytes, 5);
+    let decompressed_delta_size = read_u64(&compressed_delta_bytes, 5);
     let mut delta_bytes = vec![0; decompressed_delta_size.try_into().unwrap()];
-    let delta_bytes_to_decompress = &compressed_delta_bytes[9..];
+    let delta_bytes_to_decompress = &compressed_delta_bytes[(5 + NUM_BYTES)..];
     lz4::decompress(&delta_bytes_to_decompress, &mut delta_bytes).unwrap();
     let mut decompressed_data = Vec::new();
     RabinKarpDelta::decompress(&source_bytes, &mut decompressed_data, &delta_bytes);
