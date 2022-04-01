@@ -197,15 +197,17 @@ impl RabinKarpDelta {
       lz4::ACC_LEVEL_DEFAULT,
     )
     .unwrap();
-    std::fs::write(delta, compressed_delta_bytes).unwrap();
+    let base64_delta_bytes = base64::encode(compressed_delta_bytes);
+    std::fs::write(delta, base64_delta_bytes).unwrap();
   }
   pub fn create_target_file(source: &str, target: &str, delta: &str) {
     let mut source_file = std::fs::File::open(source).unwrap();
     let mut delta_file = std::fs::File::open(delta).unwrap();
     let mut source_bytes = Vec::new();
     source_file.read_to_end(&mut source_bytes).unwrap();
-    let mut compressed_delta_bytes = Vec::new();
-    delta_file.read_to_end(&mut compressed_delta_bytes).unwrap();
+    let mut base64_delta_bytes = Vec::new();
+    delta_file.read_to_end(&mut base64_delta_bytes).unwrap();
+    let compressed_delta_bytes = base64::decode(base64_delta_bytes).unwrap();
     if compressed_delta_bytes[0..3] != *RKD {
       panic!("Invalid RKD delta file.");
     }
