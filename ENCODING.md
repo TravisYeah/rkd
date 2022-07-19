@@ -7,7 +7,7 @@ RKD is a general delta encoding algorithm.
 The simlified version of how RKD delta encoding works:
 
 1. Precompute rolling hashes of source and target file.
-2. Iterate over source and target to specify source matches in target
+2. Iterate over source and target to specify source matches in target.
 3. Encode matches and changes in delta file.
 
 ## Delta Instructions
