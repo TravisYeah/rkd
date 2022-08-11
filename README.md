@@ -24,4 +24,8 @@ cargo bench
 
 ## Encoding
 
-See encoding information [here](ENCODING.md).
+See encoding information [here](ENCODING.md). The encoding data format is inspired by VCDIFF [1].
+
+## References
+
+[1] D. Korn, et al. "The VCDIFF Generic Differencing and Compression Data Format", RFC 2119, June 2002.
