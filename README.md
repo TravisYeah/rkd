@@ -12,6 +12,12 @@ rk_delta = { git = "https://github.com/TravisYeah/rkpb", tag = "v0.1.0" }
 
 See examples of usage in the [tests folder](tests/lib.rs).
 
+## Testing
+
+```bash
+cargo test
+```
+
 ## Compression
 
 Checkout and test the compression in the [compression folder](compression).
