@@ -1,6 +1,6 @@
 # RKD
 
-RKD is a delta encoding library.
+RKD is a toy delta encoding library I made for fun.
 
 ## Getting Started
 
